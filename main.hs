@@ -23,54 +23,26 @@ main = do
 
 novoJogo :: IO()
 novoJogo = do
-    let tab_jogador = montaTabuleiro ""
+    let tab_j = montaTabuleiro ""
     let tab_bot = montaTabuleiro ""
     let tab_jogador_ve_bot = montaTabuleiro ""
     let tab_bot_ve_jogador = montaTabuleiro ""
 
-    let msgPreparacao = "Hora da preparacao, escolha as posicoes de seus navios!"
-
-    printaTabEMensagem tab_jogador msgPreparacao
+    printaTabEMensagem tab_j "Hora da preparacao, escolha as posicoes de seus navios!"
 
     threadDelay 1000000
-
-    -- TODO: TRANSFORMAR ISSO EM FUNCAO
-    -- TODO: TRATAR ERROS DE INPUT (i.e. X > 10, X < 0, etc)
-    printaTabEMensagem tab_jogador "Insira as posicoes X Y ORIENTACAO para posicionar seu navio:\nExemplo:\nX: 2\nY: 3\nORIENT: V\nExemplo:\nX: 5\nY: 2\nORIENT: H\n"
-
-    putStr "X: "
-    raw_x <- getLine
-    putStr "Y: "
-    raw_y <- getLine
-    putStr "ORIENT: "
-    orient <- getLine
-
-    let x = read raw_x :: Int
-    let y = read raw_y :: Int
-
-    let tab_1 = posicionaNavios tab_jogador x y orient 4
-
-    printaTabEMensagem tab_1 ""
-
+    tab_j1 <- posicionaNavios tab_j 5
+    threadDelay 1000000
+    tab_j2 <- posicionaNavios tab_j1 4
+    threadDelay 1000000
+    tab_j3 <- posicionaNavios tab_j2 3
+    threadDelay 1000000
+    tab_j4 <- posicionaNavios tab_j3 3
+    threadDelay 1000000
+    tab_jf <- posicionaNavios tab_j4 2
     threadDelay 1000000
 
-    printaTabEMensagem tab_1 "Insira as posicoes X Y ORIENTACAO para posicionar seu navio:\nExemplo:\nX: 2\nY: 3\nORIENT: V\nExemplo:\nX: 5\nY: 2\nORIENT: H\n"
-
-    putStr "X: "
-    raw_x_2 <- getLine
-    putStr "Y: "
-    raw_y_2 <- getLine
-    putStr "ORIENT: "
-    orient_2 <- getLine
-
-    let x_2 = read raw_x_2 :: Int
-    let y_2 = read raw_y_2 :: Int
-
-    let tab_2 = posicionaNavios tab_1 x_2 y_2 orient_2 4
-
-    threadDelay 1000000
-    
-    printaTabEMensagem tab_2 ""
+    printaTabEMensagem tab_jf ""
 
     putStrLn ""
 
@@ -89,17 +61,64 @@ preparaTabParaPrint [] = ""
 preparaTabParaPrint [[]] = ""
 preparaTabParaPrint (h:t) = intersperse ' ' (concat h) ++ "\n" ++ preparaTabParaPrint t
 
-posicionaNavios :: [[String]] -> Int -> Int -> String -> Int -> [[String]]
-posicionaNavios l x y orient tamNavio
-  | orient == "H" = posicionaNaviosHorizontal l x y tamNavio
-  | orient == "V" = transpose (posicionaNaviosHorizontal (transpose l) y x tamNavio)
-  | otherwise = []
+posicionaNavios :: [[String]] -> Int -> IO[[String]]
+posicionaNavios tab tamNavio = do
+
+    printaTabEMensagem tab "Insira as posicoes X (de 1 a 10) Y (de 1 a 10) ORIENTACAO (H ou V) para posicionar seu navio:"
+    putStrLn ("Inserir navio de tamanho " ++ show tamNavio)
+
+    putStr "X: "
+    raw_x <- getLine
+    putStr "Y: "
+    raw_y <- getLine
+    putStr "ORIENT: "
+    orient <- getLine
+
+    let x = read raw_x :: Int
+    let y = read raw_y :: Int
+
+    if x < 1 || x > 10 then
+        do
+            putStrLn "O valor X eh invalido, insira um valor entre 1 e 10."
+            threadDelay 2500000
+            posicionaNavios tab tamNavio
+
+    else if y < 1 || y > 10 then
+        do
+            putStrLn "O valor Y eh invalido, insira um valor entre 1 e 10."
+            threadDelay 2500000
+            posicionaNavios tab tamNavio
+
+    else if (orient /= "H") && (orient /= "V") then
+        do
+            putStrLn "O valor de ORIENT eh invalido, insira o valor H para Horizontal ou V para Vertical."
+            threadDelay 4000000
+            posicionaNavios tab tamNavio
+    else if orient == "H" then
+        if not (temNavio(take tamNavio (drop (y - 1) (tab !! (x - 1))))) then
+            return (posicionaNaviosHorizontal tab x y tamNavio)
+        else
+            do
+                putStrLn "Ja ha um navio nesta posicao, insira novamente."
+                -- print (not (temNavio(take tamNavio (drop (y - 1) tab !! (x - 1)))))
+                threadDelay 3000000
+                posicionaNavios tab tamNavio
+    else if orient == "V" then
+        if not (temNavio(take tamNavio (drop (x - 1) ((transpose (tab)) !! (y - 1))))) then
+            return (transpose (posicionaNaviosHorizontal (transpose tab) y x tamNavio))
+        else
+            do
+                putStrLn "Ja ha um navio nesta posicao, insira novamente."
+                threadDelay 3000000
+                posicionaNavios tab tamNavio
+                
+
+    else return []
 
 posicionaNaviosHorizontal :: [[String]] -> Int -> Int -> Int -> [[String]]
 posicionaNaviosHorizontal tab_j x y tamNavio
-    | y + tamNavio > 10 = []
     | not (temNavio(take tamNavio (drop (y - 1) linha))) =
-        remontaNaviosHorizontal tab_j 4 linhaInserir posInserir
+        remontaNaviosHorizontal tab_j tamNavio linhaInserir posInserir
     | otherwise = []
     where
         linha = tab_j !! (x - 1)
