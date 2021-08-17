@@ -1,7 +1,10 @@
 {-- Batalha Naval --}
+import System.Random -- cabal install random
 import Control.Concurrent
 import System.Console.ANSI -- cabal install ansi-terminal
 import Data.List
+-- import Control.Monad.IO.Class (MonadIO (..))
+-- import Control.Monad.IO.Class -- cabal install mtl
 
 main :: IO()
 main = do
@@ -18,15 +21,28 @@ main = do
         "n" -> novoJogo;
         -- 'c' -> carregarJogo;
         -- 's' -> sairJogo;
+        _ -> do
+            putStrLn "Opcao invalida!"
+            main
     }
     putStrLn ""
 
 novoJogo :: IO()
 novoJogo = do
-    let tab_j = montaTabuleiro ""
-    let tab_bot = montaTabuleiro ""
-    let tab_jogador_ve_bot = montaTabuleiro ""
-    let tab_bot_ve_jogador = montaTabuleiro ""
+    tab_j <- montaTabuleiro ""
+    print tab_j
+    tab_bot <- montaTabuleiro "B"
+    print tab_bot
+    tab_jogador_ve_bot <- montaTabuleiro ""
+    tab_bot_ve_jogador <- montaTabuleiro ""
+
+    print tab_bot
+
+    threadDelay 2000000
+
+    printaTabEMensagem tab_bot "Este eh o tabuleiro do bot, nao fala pra ninguem que voce viu..."
+
+    threadDelay 5000000
 
     printaTabEMensagem tab_j "Hora da preparacao, escolha as posicoes de seus navios!"
 
@@ -46,8 +62,43 @@ novoJogo = do
 
     putStrLn ""
 
-montaTabuleiro :: String -> [[String]]
-montaTabuleiro "" = [["~" | _ <- [1..10]] | _ <- [1..10]]
+montaTabuleiro :: String -> IO [[String]]
+montaTabuleiro opcao =
+    case opcao of {
+        "" -> return tab;
+        "B" -> montaTabuleiroBotInteiro tab
+    }
+    where
+        tab = [["~" | _ <- [1..10]] | _ <- [1..10]]
+
+montaTabuleiroBotInteiro :: [[String]] -> IO [[String]]
+montaTabuleiroBotInteiro tab = do
+    tab_b1 <- montaTabuleiroBot tab 5
+    tab_b2 <- montaTabuleiroBot tab_b1 4
+    tab_b3 <- montaTabuleiroBot tab_b2 3
+    tab_b4 <- montaTabuleiroBot tab_b3 3
+    montaTabuleiroBot tab_b4 2    
+
+randomPos :: IO Int
+randomPos = randomRIO (fromInteger(1),fromInteger(10))
+
+randomBool :: IO Int
+randomBool = randomRIO (fromInteger(0),fromInteger(1))
+
+montaTabuleiroBot :: [[String]] -> Int -> IO [[String]]
+montaTabuleiroBot tab tamNavio = do
+    x <- randomPos
+    y <- randomPos
+    orient_i <- randomBool
+
+    if orient_i == 0 then
+        if (y + tamNavio - 1 <= 10) && verificaTemNavioHorizontal tab x y tamNavio then
+            return (posicionaNaviosHorizontal tab x y tamNavio) else
+            montaTabuleiroBot tab tamNavio
+    else
+        if (x + tamNavio - 1 <= 10) && verificaTemNavioVertical tab x y tamNavio then
+            return (transpose (posicionaNaviosHorizontal (transpose tab) y x tamNavio)) else
+            montaTabuleiroBot tab tamNavio
 
 printaTabEMensagem :: [[String]] -> String -> IO ()
 printaTabEMensagem tab msg = do
@@ -95,25 +146,45 @@ posicionaNavios tab tamNavio = do
             threadDelay 4000000
             posicionaNavios tab tamNavio
     else if orient == "H" then
-        if not (temNavio(take tamNavio (drop (y - 1) (tab !! (x - 1))))) then
-            return (posicionaNaviosHorizontal tab x y tamNavio)
-        else
+        if y + tamNavio - 1 <= 10 then
+            if verificaTemNavioHorizontal tab x y tamNavio then
+                return (posicionaNaviosHorizontal tab x y tamNavio)
+            else
             do
                 putStrLn "Ja ha um navio nesta posicao, insira novamente."
-                -- print (not (temNavio(take tamNavio (drop (y - 1) tab !! (x - 1)))))
                 threadDelay 3000000
                 posicionaNavios tab tamNavio
+        else
+            do
+                putStrLn "O x + tamanho do navio estao fora dos limites, escolha outra posicao"
+                threadDelay 3000000
+                posicionaNavios tab tamNavio
+
     else if orient == "V" then
-        if not (temNavio(take tamNavio (drop (x - 1) ((transpose (tab)) !! (y - 1))))) then
-            return (transpose (posicionaNaviosHorizontal (transpose tab) y x tamNavio))
+        if x + tamNavio - 1 <= 10 then
+            if verificaTemNavioVertical tab x y tamNavio then
+                return (transpose (posicionaNaviosHorizontal (transpose tab) y x tamNavio))
+            else
+                do
+                    putStrLn "Ja ha um navio nesta posicao, insira novamente."
+                    threadDelay 3000000
+                    posicionaNavios tab tamNavio
         else
             do
-                putStrLn "Ja ha um navio nesta posicao, insira novamente."
+                putStrLn "O y + tamanho do navio estao fora dos limites, escolha outra posicao"
                 threadDelay 3000000
                 posicionaNavios tab tamNavio
-                
 
     else return []
+
+verificaTemNavioHorizontal :: [[String]] -> Int -> Int -> Int -> Bool
+verificaTemNavioHorizontal tab x y tamNavio =
+    not (temNavio(take tamNavio (drop (y - 1) (tab !! (x - 1)))))
+
+verificaTemNavioVertical :: [[String]] -> Int -> Int -> Int -> Bool
+verificaTemNavioVertical tab x y tamNavio =
+    not (temNavio(take tamNavio (drop (x - 1) ((transpose (tab)) !! (y - 1)))))
+
 
 posicionaNaviosHorizontal :: [[String]] -> Int -> Int -> Int -> [[String]]
 posicionaNaviosHorizontal tab_j x y tamNavio
