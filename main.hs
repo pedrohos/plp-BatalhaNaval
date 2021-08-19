@@ -3,64 +3,255 @@ import System.Random -- cabal install random
 import Control.Concurrent
 import System.Console.ANSI -- cabal install ansi-terminal
 import Data.List
--- import Control.Monad.IO.Class (MonadIO (..))
--- import Control.Monad.IO.Class -- cabal install mtl
+import System.Exit
+
+{--
+    Símbolos:
+    "~" -> Água
+    "#" -> Navio
+    "o" -> Água sem navio
+    "X" -> Navio atingido
+--}
 
 main :: IO()
 main = do
     clearScreen
-    putStrLn "Vai comecar o jogo!"
+    putStrLn "Bem-vindo a Batalha Naval!"
     putStrLn "O que voce ira fazer?"
     putStrLn "(n) - Novo Jogo"
     putStrLn "(c) - Carregar Jogo"
     putStrLn "(s) - Sair do Jogo"
 
-    input <- getLine
+    opcao <- getLine
 
-    case input of {
+    case opcao of {
         "n" -> novoJogo;
-        -- 'c' -> carregarJogo;
-        -- 's' -> sairJogo;
+        "c" -> carregarJogo;
+        "s" -> die "Fechando jogo...";
         _ -> do
             putStrLn "Opcao invalida!"
             main
     }
-    putStrLn ""
 
 novoJogo :: IO()
 novoJogo = do
     tab_j <- montaTabuleiro ""
-    print tab_j
-    tab_bot <- montaTabuleiro "B"
-    print tab_bot
     tab_jogador_ve_bot <- montaTabuleiro ""
+    tab_bot <- montaTabuleiro "B"
     tab_bot_ve_jogador <- montaTabuleiro ""
 
-    print tab_bot
+    clearScreen
+    -- TODO: Remover este print na versão final
+    printaTabEMensagem tab_bot "Este eh o tabuleiro do bot, nao fala pra ninguem que voce viu..."
 
     threadDelay 2000000
 
-    printaTabEMensagem tab_bot "Este eh o tabuleiro do bot, nao fala pra ninguem que voce viu..."
+    clearScreen 
+    putStrLn "Hora da preparacao, escolha as posicoes de seus navios!"
+    putStrLn ""
+    putStrLn ""
 
-    threadDelay 5000000
-
-    printaTabEMensagem tab_j "Hora da preparacao, escolha as posicoes de seus navios!"
-
-    threadDelay 1000000
+    -- Pede ao jogador que posicione os 5 navios
+    threadDelay 2500000
+    clearScreen
     tab_j1 <- posicionaNavios tab_j 5
     threadDelay 1000000
+    clearScreen
     tab_j2 <- posicionaNavios tab_j1 4
     threadDelay 1000000
+    clearScreen
     tab_j3 <- posicionaNavios tab_j2 3
     threadDelay 1000000
+    clearScreen
     tab_j4 <- posicionaNavios tab_j3 3
     threadDelay 1000000
+    clearScreen
     tab_jf <- posicionaNavios tab_j4 2
     threadDelay 1000000
+    clearScreen
 
-    printaTabEMensagem tab_jf ""
+    printaTabEMensagem tab_jf "     Tabuleiro final:"
+    threadDelay 3000000
+
+    loopPartida tab_jf tab_jogador_ve_bot tab_bot tab_bot_ve_jogador 1
 
     putStrLn ""
+
+-- TODO: Implementar a funcao de carregar jogo
+-- carregarJogo :: IO () -> IO ([[String]], [[String]], [[String]], [[String]], Int)
+carregarJogo :: IO()
+carregarJogo = do
+    putStrLn "Carregando jogo..."
+    -- carregaInformacoes
+    -- return carregaInformacoes
+
+
+loopPartida :: [[String]] -> [[String]] -> [[String]] -> [[String]] -> Int -> IO ()
+loopPartida tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round =
+    do
+        -- Conta o numero de navios restantes, caso o número de algum player chegue a 0, o jogo acaba.
+        -- Caso o jogador chegue a 0, o bot ganha.
+        -- Caso o bot chegue a 0, o jogador ganha.
+        let numNaviosJog = contaNavios tab_jogador
+        let numNaviosBot = contaNavios tab_bot
+        clearScreen 
+        putStrLn ("Numero de navios restantes do jogador: " ++ show numNaviosJog)
+        putStrLn ("Numero de navios restantes do bot: " ++ show numNaviosBot)
+        putStrLn ""
+
+        if numNaviosJog == 0 then
+            derrota
+        else if numNaviosBot == 0 then
+            vitoria
+        else
+            do
+                printaTabEMensagem tab_jogador "   Tabuleiro do jogador"
+                printaTabEMensagem tab_jogador_ve_bot "   Tabuleiro de ataque"
+                putStrLn ("Round: " ++ show round)
+                putStrLn ""
+
+                putStrLn "Gostaria de (d)isparar ou (s)alvar? (Isso ira sobrescrever a gravacao existente)"
+
+                opcao <- getLine
+
+                case opcao of {
+                    "d" -> putStrLn "Iniciando round.";
+                    -- "c" -> carregarJogo;
+                    "s" -> salvarJogo tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round;
+                    _ -> do
+                        putStrLn "Opcao invalida!"
+                        loopPartida tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round
+                }
+
+                (tab_bot_final, tab_jogador_ve_bot_final) <- disparaAoBot tab_bot tab_jogador_ve_bot
+                putStrLn "Vez do bot..."
+                threadDelay 300000
+                (tab_jogador_final, tab_bot_ve_jogador_final) <- disparaAoPlayer tab_jogador tab_bot_ve_jogador
+                
+                clearScreen
+                loopPartida tab_jogador_final tab_jogador_ve_bot_final tab_bot_final tab_bot_ve_jogador_final (round + 1)
+
+-- TODO: Implementar a funcao de salvar jogo
+salvarJogo :: [[String]] -> [[String]] -> [[String]] -> [[String]] -> Int -> IO ()
+salvarJogo tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round = do
+    print "Salvando jogo..."
+    -- salvaInformacoes
+    -- print "Jogo salvo com sucesso!"
+    -- ou
+    -- print "Falha ao salvar jogo."
+
+disparaAoBot :: [[String]] -> [[String]] -> IO ([[String]], [[String]])
+disparaAoBot tab_bot tab_jogador_ve_bot = do
+    putStrLn "Sua vez de disparar, escolha as posicoes X (de 1 a 10) e Y (de 1 a 10)."
+    putStr "X: "
+    raw_x <- getLine
+    putStr "Y: "
+    raw_y <- getLine
+
+    let x = read raw_x :: Int
+    let y = read raw_y :: Int
+
+    if x < 1 || x > 10 then
+        do
+            putStrLn "O valor X eh invalido, insira um valor entre 1 e 10."
+            threadDelay 2500000
+            disparaAoBot tab_bot tab_jogador_ve_bot
+
+    else if y < 1 || y > 10 then
+        do
+            putStrLn "O valor Y eh invalido, insira um valor entre 1 e 10."
+            threadDelay 2500000
+            disparaAoBot tab_bot tab_jogador_ve_bot
+    else if (tab_jogador_ve_bot !! (x - 1)) !! (y - 1) `elem` ["X", "o"] then
+        do
+            putStrLn "Voce ja disparou nesta posicao. Escolha uma outra posicao."
+            disparaAoBot tab_bot tab_jogador_ve_bot
+    else
+        if (tab_bot !! (x - 1)) !! (y - 1) == "#" then
+            do
+                putStrLn "Voce acertou um navio!"
+                let simbolo = "X"
+                let tab_bot_final = disparaEmNavio tab_bot x y simbolo
+                let tab_jogador_ve_bot_final = disparaEmNavio tab_jogador_ve_bot x y simbolo
+                return (tab_bot_final, tab_jogador_ve_bot_final)
+        else
+            do
+                putStrLn "Voce acertou na agua!"
+                let simbolo = "o"
+                let tab_jogador_ve_bot_final = disparaEmNavio tab_jogador_ve_bot x y simbolo
+                -- printaTabEMensagem tab_bot "Tab bot"
+                -- threadDelay 2500000
+                -- printaTabEMensagem tab_jogador_ve_bot_final "Tab jogador"
+                -- threadDelay 2500000
+                return (tab_bot, tab_jogador_ve_bot_final)
+
+disparaAoPlayer :: [[String]] -> [[String]] -> IO ([[String]], [[String]])
+disparaAoPlayer tab_jogador tab_bot_ve_jogador = do
+    x <- randomPos
+    y <- randomPos
+
+    -- Posição inválida ou posição já foi atingida
+    if x < 1 || x > 10 || y < 1 || y > 10 || (tab_bot_ve_jogador !! (x - 1)) !! (y - 1) `elem` ["X", "o"] then
+        do
+            disparaAoPlayer tab_jogador tab_bot_ve_jogador
+    else
+        -- Atingiu um navio
+        if (tab_jogador !! (x - 1)) !! (y - 1) == "#" then
+            do
+                let simbolo = "X"
+                let tab_jogador_final = disparaEmNavio tab_jogador x y simbolo
+                let tab_bot_ve_jogador_final = disparaEmNavio tab_bot_ve_jogador x y simbolo
+                return (tab_jogador_final, tab_bot_ve_jogador_final)
+        -- Atingiu água
+        else
+            do
+                let simbolo = "o"
+                let tab_jogador_ve_bot_final = disparaEmNavio tab_bot_ve_jogador x y simbolo
+                return (tab_jogador, tab_jogador_ve_bot_final)
+
+disparaEmNavio :: [[String]] -> Int -> Int -> String -> [[String]]
+disparaEmNavio (h:t) x y simbolo
+    | x_index == 0 && t == [] = [[h !! k | k <- [0..(y_index - 1)]] ++ [simbolo] ++ [h !! k | k <- [(y_index + 1)..9]]]
+    | x_index == 0 = ([h !! k | k <- [0..(y_index - 1)]] ++ [simbolo] ++ [h !! k | k <- [(y_index + 1)..9]]) :
+        disparaEmNavio t (x - 1) y simbolo
+    | null t = [h]
+    | otherwise = h : disparaEmNavio t (x - 1) y simbolo
+    where
+        x_index = x - 1
+        y_index = y - 1
+
+vitoria :: IO ()
+vitoria = do
+    putStrLn "Voce venceu!"
+    putStrLn "Gostaria de jogar novamente? (s ou n)"
+    input <- getLine
+
+    case input of {
+        "s" -> main;
+        "n" -> die "Fechando jogo...";
+        _ -> do
+            putStrLn "Opcao invalida!"
+            vitoria
+    }
+
+derrota :: IO ()
+derrota = do
+    putStrLn "Voce perdeu!"
+    putStrLn "Gostaria de jogar novamente? (s ou n)"
+    input <- getLine
+
+    case input of {
+        "s" -> main;
+        "n" -> die "Fechando jogo...";
+        _ -> do
+            putStrLn "Opcao invalida!"
+            derrota
+    }
+
+contaNavios :: [[String]] -> Int
+contaNavios tab_jogador = do
+    let boolsNavioPresente = [verificaTemNavioHorizontal tab_jogador x y 1 | x <- [1..10], y <- [1..10]]
+    sum ([1 | bool <- boolsNavioPresente, not bool])
 
 montaTabuleiro :: String -> IO [[String]]
 montaTabuleiro opcao =
@@ -102,27 +293,28 @@ montaTabuleiroBot tab tamNavio = do
 
 printaTabEMensagem :: [[String]] -> String -> IO ()
 printaTabEMensagem tab msg = do
-    clearScreen
-    putStrLn "Tabuleiro do Jogador"
-    putStrLn (preparaTabParaPrint tab)
     putStrLn msg
+    putStrLn (preparaTabParaPrint tab 0)
 
-preparaTabParaPrint :: [[String]] -> String
-preparaTabParaPrint [] = ""
-preparaTabParaPrint [[]] = ""
-preparaTabParaPrint (h:t) = intersperse ' ' (concat h) ++ "\n" ++ preparaTabParaPrint t
+preparaTabParaPrint :: [[String]] -> Int -> String
+preparaTabParaPrint [] i = ""
+preparaTabParaPrint [[]] i = ""
+preparaTabParaPrint tab 0 = "   1 2 3 4 5 6 7 8 9 10\n" ++ preparaTabParaPrint tab 1
+preparaTabParaPrint (h:t) 10 = show 10 ++ " " ++ intersperse ' ' (concat h) ++ "\n"
+preparaTabParaPrint (h:t) i = " " ++ show i ++ " " ++ intersperse ' ' (concat h) ++ "\n" ++ preparaTabParaPrint t (i + 1)
 
 posicionaNavios :: [[String]] -> Int -> IO[[String]]
 posicionaNavios tab tamNavio = do
 
-    printaTabEMensagem tab "Insira as posicoes X (de 1 a 10) Y (de 1 a 10) ORIENTACAO (H ou V) para posicionar seu navio:"
-    putStrLn ("Inserir navio de tamanho " ++ show tamNavio)
+    printaTabEMensagem tab "      Seu tabuleiro"
+    putStrLn "Insira as posicoes X (de 1 a 10) Y (de 1 a 10) ORIENTACAO (H ou V) para posicionar seu navio."
+    putStrLn ("Tamanho do navio: " ++ show tamNavio)
 
     putStr "X: "
     raw_x <- getLine
     putStr "Y: "
     raw_y <- getLine
-    putStr "ORIENT: "
+    putStr "ORIENTACAO: "
     orient <- getLine
 
     let x = read raw_x :: Int
@@ -185,7 +377,6 @@ verificaTemNavioVertical :: [[String]] -> Int -> Int -> Int -> Bool
 verificaTemNavioVertical tab x y tamNavio =
     not (temNavio(take tamNavio (drop (x - 1) ((transpose (tab)) !! (y - 1)))))
 
-
 posicionaNaviosHorizontal :: [[String]] -> Int -> Int -> Int -> [[String]]
 posicionaNaviosHorizontal tab_j x y tamNavio
     | not (temNavio(take tamNavio (drop (y - 1) linha))) =
@@ -206,4 +397,4 @@ remontaNaviosHorizontal (h:t) tamNavio linhaInserir posInserir
 
 temNavio :: [String] -> Bool
 temNavio l =
-    False `elem` map (== "~") l
+    True `elem` map (== "#") l
