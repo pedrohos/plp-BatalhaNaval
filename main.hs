@@ -4,6 +4,7 @@ import Control.Concurrent
 import System.Console.ANSI -- cabal install ansi-terminal
 import Data.List
 import System.Exit
+import System.IO
 
 {--
     Símbolos:
@@ -47,9 +48,7 @@ novoJogo = do
     threadDelay 2000000
 
     clearScreen 
-    putStrLn "Hora da preparacao, escolha as posicoes de seus navios!"
-    putStrLn ""
-    putStrLn ""
+    putStrLn "Hora da preparacao, escolha as posicoes de seus navios!\n\n"
 
     -- Pede ao jogador que posicione os 5 navios
     threadDelay 2500000
@@ -77,14 +76,21 @@ novoJogo = do
 
     putStrLn ""
 
--- TODO: Implementar a funcao de carregar jogo
--- carregarJogo :: IO () -> IO ([[String]], [[String]], [[String]], [[String]], Int)
-carregarJogo :: IO()
-carregarJogo = do
-    putStrLn "Carregando jogo..."
-    -- carregaInformacoes
-    -- return carregaInformacoes
+lerGravacao :: Handle -> IO ([[String]], [[String]], [[String]], [[String]], Int)
+lerGravacao fileHandler = do
+    line <- hGetLine fileHandler
+    return (read line :: ([[String]], [[String]], [[String]], [[String]], Int))
 
+carregarGravacao :: IO([[String]], [[String]], [[String]], [[String]], Int)
+carregarGravacao = do
+    putStrLn "Carregando jogo..."
+    file <- openFile "save.txt" ReadMode
+    lerGravacao file
+
+carregarJogo :: IO ()
+carregarJogo = do
+    (tab_jf, tab_jogador_ve_bot, tab_bot, tab_bot_ve_jogador, round) <- carregarGravacao
+    loopPartida tab_jf tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round
 
 loopPartida :: [[String]] -> [[String]] -> [[String]] -> [[String]] -> Int -> IO ()
 loopPartida tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round =
@@ -116,7 +122,6 @@ loopPartida tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round =
 
                 case opcao of {
                     "d" -> putStrLn "Iniciando round.";
-                    -- "c" -> carregarJogo;
                     "s" -> salvarJogo tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round;
                     _ -> do
                         putStrLn "Opcao invalida!"
@@ -134,11 +139,10 @@ loopPartida tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round =
 -- TODO: Implementar a funcao de salvar jogo
 salvarJogo :: [[String]] -> [[String]] -> [[String]] -> [[String]] -> Int -> IO ()
 salvarJogo tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round = do
-    print "Salvando jogo..."
-    -- salvaInformacoes
-    -- print "Jogo salvo com sucesso!"
-    -- ou
-    -- print "Falha ao salvar jogo."
+    putStrLn "Salvando jogo..."
+    writeFile "save.txt" (show (tab_jogador, tab_jogador_ve_bot, tab_bot, tab_bot_ve_jogador, round))
+    putStrLn "Jogo salvo!"
+    loopPartida tab_jogador tab_jogador_ve_bot tab_bot tab_bot_ve_jogador round
 
 disparaAoBot :: [[String]] -> [[String]] -> IO ([[String]], [[String]])
 disparaAoBot tab_bot tab_jogador_ve_bot = do
