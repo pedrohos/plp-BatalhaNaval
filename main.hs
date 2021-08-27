@@ -41,10 +41,6 @@ novoJogo = do
     tab_bot <- montaTabuleiro "B"
     tab_bot_ve_jogador <- montaTabuleiro ""
 
-    clearScreen
-
-    threadDelay 2000000
-
     clearScreen 
     putStrLn "Hora da preparacao, escolha as posicoes de seus navios!\n\n"
 
