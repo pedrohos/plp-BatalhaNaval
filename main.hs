@@ -42,8 +42,6 @@ novoJogo = do
     tab_bot_ve_jogador <- montaTabuleiro ""
 
     clearScreen
-    -- TODO: Remover este print na versão final
-    printaTabEMensagem tab_bot "Este eh o tabuleiro do bot, nao fala pra ninguem que voce viu..."
 
     threadDelay 2000000
 
