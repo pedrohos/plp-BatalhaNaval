@@ -10,22 +10,29 @@
     <li>cabal install ansi-terminal</li>
   </ol>
   
+  <h3>Como compilar para jogar</h3>
+  <ol>
+    <li> gch main</li>
+    <li> ./main (Linux)</li>
+    <li> .\main.exe (Windows)</li>
+  </ol>
+  
   <h3>
     Sobre o jogo
   </h3>
-    No início da partida o jogador poderá posicionar os navios e a cada rodada poderá realizar um disparo ao inimigo. Após disparado, será reportado ao jogador se a célula     atingida foi na água, em um navio ou se naufragou um navio. Na vez do bot o mesmo ocorrerá, assim o jogo dará sequência até que todos os navios de um participante sejam eliminados primeiro.
+    No início da partida o jogador poderá posicionar os navios e a cada rodada poderá realizar um disparo ao inimigo. Após o disparo, será reportado ao jogador se a célula     atingida foi na água, em um navio ou se naufragou um navio. Na vez do bot o mesmo ocorrerá, assim o jogo dará sequência até que todos os navios de um participante sejam eliminados primeiro.
 
   O jogador, em seu turno, poderá salvar o jogo, persistindo as todas as informações da partida para dar continuidade posteriormente.
 
   No início do jogo o jogador poderá escolher carregar uma partida salva anteriormente ou iniciar um novo jogo.
 
   <h3>
-    Símbolos:<br/>
+    Símbolos:
   
-    "~" -> Água<br/>
-    "#" -> Navio<br/>
-    "o" -> Água sem navio<br/>
-    "X" -> Navio atingido<br/>
+    "~" -> Água 
+    "#" -> Navio 
+    "o" -> Água sem navio 
+    "X" -> Navio atingido 
   </h3>
   
 </p>
