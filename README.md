@@ -20,11 +20,10 @@
   <h3>
     Sobre o jogo
   </h3>
-    No início da partida o jogador poderá posicionar os navios e a cada rodada poderá realizar um disparo ao inimigo. Após o disparo, será reportado ao jogador se a célula     atingida foi na água, em um navio ou se naufragou um navio. Na vez do bot o mesmo ocorrerá, assim o jogo dará sequência até que todos os navios de um participante sejam eliminados primeiro.
+    No início da partida o jogador poderá posicionar os navios e a cada rodada poderá realizar um disparo ao inimigo. Após o disparo, será reportado ao jogador se a célula atingida foi na água, um navio ou se a posição já foi atingida antes. Na vez do bot, o mesmo ocorrerá. Assim o jogo dará sequência até que todos os navios de um dos participante sejam eliminados primeiro.
+O jogador, em seu turno, poderá salvar o jogo, persistindo as todas as informações da partida para dar continuidade posteriormente.
 
-  O jogador, em seu turno, poderá salvar o jogo, persistindo as todas as informações da partida para dar continuidade posteriormente.
-
-  No início do jogo o jogador poderá escolher carregar uma partida salva anteriormente ou iniciar um novo jogo.
+No início do jogo o jogador poderá escolher carregar uma partida salva anteriormente ou iniciar um novo jogo.
 
   <h3>
     Símbolos:
