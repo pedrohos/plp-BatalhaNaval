@@ -4,7 +4,7 @@ use_module(library(random)).
 % "~" -> Água
 % "#" -> Navio
 % "o" -> Água sem navio
-% "X" -> Navio atingido
+% "x" -> Navio atingido
 
 main:-
 	limpaTela(),
@@ -28,12 +28,15 @@ printaApresentacao():-
 executaOpcao("n"):- novoJogo().
 executaOpcao("c"):- carregarJogo().
 executaOpcao("s"):- halt.
-executaOpcao(_):-
+executaOpcao(Opcao):-
+	Opcao \= "n",
+	Opcao \= "c",
+	Opcao \= "",
 	write('Opcao invalida!\n'),
 	main.
 
 carregarJogo():-
-	write('Carregando jogo'),
+	write('Carregando jogo...\n'),
 	sleep(0.3),
 	carregarTabs(Tab_J, Tab_J_Ve_B, Tab_B, Tab_B_Ve_J, Round),
 	loopPartida(Tab_J, Tab_J_Ve_B, Tab_B, Tab_B_Ve_J, Round).
@@ -90,22 +93,6 @@ novoJogo():-
 	montaTabuleiro("", Tab_J_Ve_B),
 	montaTabuleiro("B", Tab_B),
 	montaTabuleiro("", Tab_B_Ve_J),
-
-	% salvarTabs(Tab_J, Tab_J_Ve_B, Tab_B, Tab_B_Ve_J, _),
-
-	% % TESTE
-	% writeTabs(Tab_JC, Tab_J_Ve_BC, Tab_BC, Tab_B_Ve_JC, _),
-	% write('1\n'),
-	% write(Tab_JC),
-	% write('\n2\n'),
-	% write(Tab_J_Ve_BC),
-	% write('\n3\n'),
-	% write(Tab_BC),
-	% write('\n4\n'),
-	% write(Tab_B_Ve_JC),
-	% write('\n'),
-	% sleep(2.5),
-	% % 
 
 	limpaTela(),
 	write('Hora da preparacao, escolha as posicoes de seus navios!\n\n'),
@@ -211,20 +198,20 @@ contaNaviosTab([H|T], NumNaviosF):-
 	contaNaviosTab(T, NumNaviosE),
 	NumNaviosF is NumNavios + NumNaviosE.
 
-contaNaviosLinha(["~"|[]], 0).
-contaNaviosLinha(["X"|[]], 0).
-contaNaviosLinha(["o"|[]], 0).
-contaNaviosLinha(["#"|[]], 1).
-contaNaviosLinha(["~"|T], NumNaviosF):-
+contaNaviosLinha([~|[]], 0).
+contaNaviosLinha([x|[]], 0).
+contaNaviosLinha([o|[]], 0).
+contaNaviosLinha([#|[]], 1).
+contaNaviosLinha([~|T], NumNaviosF):-
 	contaNaviosLinha(T, NumNavios),
 	NumNaviosF is 0 + NumNavios.
-contaNaviosLinha(["X"|T], NumNaviosF):-
+contaNaviosLinha([x|T], NumNaviosF):-
 	contaNaviosLinha(T, NumNavios),
 	NumNaviosF is 0 + NumNavios.
-contaNaviosLinha(["o"|T], NumNaviosF):-
+contaNaviosLinha([o|T], NumNaviosF):-
 	contaNaviosLinha(T, NumNavios),
 	NumNaviosF is 0 + NumNavios.
-contaNaviosLinha(["#"|T], NumNaviosF):-
+contaNaviosLinha([#|T], NumNaviosF):-
 	contaNaviosLinha(T, NumNavios),
 	NumNaviosF is 1 + NumNavios.
 
@@ -239,9 +226,10 @@ verificaFinalizacaoPartida(A, B):- A =\= 0, B =\= 0.
 
 % TODO: TESTAR TODAS AS FUNCOES COMENTADAS
 loopPartida(Tab_J, Tab_J_Ve_B, Tab_B, Tab_B_Ve_J, Round):-
+	% write('\nEntrou'),
 	contaNaviosTab(Tab_J, NumNavios_J),
 	contaNaviosTab(Tab_B, NumNavios_B),
-
+	% write('\nContei').
 	limpaTela(),
 	write('Numero de navios restantes do jogador: '),
 	write(NumNavios_J),
@@ -313,18 +301,11 @@ disparaAoBot(Tab_B, Tab_J_Ve_B, Tab_BF, Tab_J_Ve_BF):-
 	verificaEntradaX(X, R1),
 	verificaEntradaY(Y, R2),
 	verificaXY(R1, R2, RXY),
-	% write('RXY: '),
-	% write(RXY),
-	% write('\n'),
-	verificaJaDisparadoAoBot(Tab_J_Ve_B, X, Y, RDisparo),
 
-	% write('RDisparo: '),
-	% write(RDisparo),
-	% write('\n'),
+	verificaJaDisparadoAoBot(Tab_J_Ve_B, X, Y, RDisparo),
 
 	verificaDisparoFinal(RXY, RDisparo, RVerificacao),
 	RVerificacao == true -> (
-		% write('Entrou'),
 		selecionaSimboloNavio(Tab_B, X, Y, Simbolo),
 		posicionaSimbolo(Tab_B, Tab_J_Ve_B, X, Y, Simbolo, Tab_BF, Tab_J_Ve_BF)
 	);
@@ -336,14 +317,14 @@ selecionaSimboloNavio(Tab, X, Y, SimboloF):-
 	nth1(Y, Linha, Simbolo),
 	verificaSimbolo(Simbolo, SimboloF).
 
-posicionaSimbolo(Tab_B, Tab_J_Ve_B, X, Y, "X", Tab_BF, Tab_J_Ve_BF):-
+posicionaSimbolo(Tab_B, Tab_J_Ve_B, X, Y, x, Tab_BF, Tab_J_Ve_BF):-
 	write('Voce acertou um navio!\n'),
-	posicionaCelula(Tab_B, X, Y, "X", Tab_BF),
-	posicionaCelula(Tab_J_Ve_B, X, Y, "X", Tab_J_Ve_BF).
+	posicionaCelula(Tab_B, X, Y, x, Tab_BF),
+	posicionaCelula(Tab_J_Ve_B, X, Y, x, Tab_J_Ve_BF).
 
-posicionaSimbolo(Tab_B, Tab_J_Ve_B, X, Y, "o", Tab_B, Tab_J_Ve_BF):-
+posicionaSimbolo(Tab_B, Tab_J_Ve_B, X, Y, o, Tab_B, Tab_J_Ve_BF):-
 	write('Voce acertou na agua!\n'),
-	posicionaCelula(Tab_J_Ve_B, X, Y, "o", Tab_J_Ve_BF).
+	posicionaCelula(Tab_J_Ve_B, X, Y, o, Tab_J_Ve_BF).
 
 posicionaCelula(Tab, X, Y, Simbolo, Tab_F):-
 	LinhaInserir is X - 1,
@@ -385,9 +366,8 @@ montaLista(LEntrada, I, MinI, MaxI, LSaida, ElementoEntrada, Flag, R):-
 
 
 
-verificaSimbolo("#", "X").
-% verificaSimbolo("~", "o").
-verificaSimbolo(Simbolo, "o"):- Simbolo =\= "#".
+verificaSimbolo(#, x).
+verificaSimbolo(~, o).
 
 verificaDisparoFinal(_, false, false).
 verificaDisparoFinal(false, _, false).
@@ -409,13 +389,16 @@ verificaJaDisparadoAoJogador(Tab, X, Y, R):-
 	);
 	R = false.
 
-ehDisparoAoBot("X", false).
-ehDisparoAoBot("o", false).
-ehDisparoAoBot(E, R):- E =\= "X", E =\= "o", R = true.
+ehDisparoAoBot(x, false).
+ehDisparoAoBot(o, false).
+ehDisparoAoBot(#, true).
+ehDisparoAoBot(~, true).
+ehDisparoAoBot(E, R):- E \= x, E \= o, R = true.
 
-ehDisparoAoJogador("X", false).
-ehDisparoAoJogador("o", false).
-ehDisparoAoJogador(E, R):- E =\= "X", E =\= "o", R = true.
+ehDisparoAoJogador(x, false).
+ehDisparoAoJogador(o, false).
+ehDisparoAoJogador(#, true).
+ehDisparoAoJogador(~, true).
 
 montaTabuleiro("", Tab_J):-
 	montaMatrizLimpa(_, 0, Tab_J).
@@ -424,24 +407,11 @@ montaTabuleiro("B", Tab_B):-
 	montaTabuleiroBotInteiro(Tab, Tab_B).
 
 montaTabuleiroBotInteiro(Tab, Tab_BF):-
-	tell('b.txt'),
 	montaTabuleiroBot(Tab, 5, Tab_B1),
-	write(Tab_B1),
-	write('\n'),
 	montaTabuleiroBot(Tab_B1, 4, Tab_B2),
-	write(Tab_B2),
-	write('\n'),
 	montaTabuleiroBot(Tab_B2, 3, Tab_B3),
-	write(Tab_B3),
-	write('\n'),
 	montaTabuleiroBot(Tab_B3, 3, Tab_B4),
-	write(Tab_B4),
-	write('\n'),
-	montaTabuleiroBot(Tab_B4, 2, Tab_BF),
-	write(Tab_BF),
-	write('\n'),
-	read(A),
-	told.
+	montaTabuleiroBot(Tab_B4, 2, Tab_BF).
 
 montaTabuleiroBot(Tab, TamNavio, R):-
 	random(1, 11, X),
@@ -573,13 +543,12 @@ posicionaNavios(Tab, TamNavio, R):-
 
 	verificaEntradaX(X, R1),
 	verificaEntradaY(Y, R2),
-	% TODO VERIFICAR ONDE ESTÁ A DEFINIÇÃO DE R3 (Verificar orientacao ???)
+	verificaEntradaOrient(Orientacao, R3),
 
 	verificaXYOri(R1, R2, R3, RXYOri),
 	verificaLimites(Tab, Orientacao, X, Y, TamNavio, RLimite),
 	rFinal(RXYOri, RLimite, RFinal),
-	% write('\nRFinal: '),
-	% write(RFinal),
+
 	write('\n'),
 	RFinal == true -> (
 		verificaEInsereTab(Tab, X, Y, Orientacao, TamNavio, RFinal, R)
@@ -625,12 +594,6 @@ verificaTemNavioHorizontal(Tab, X, Y, TamNavio, R):-
 verificaTemNavioVertical(Tab, X, Y, TamNavio, R):-
     transpose(Tab, TabTransp),
 	verificaTemNavioHorizontal(TabTransp, Y, X, TamNavio, R).
-    % nth1(Y, TabTransp, LinhaTab),
-    % NumDeDrops is X - 1,
-    % drop(NumDeDrops, LinhaTab, LinhaTabDrop),
-    % take(TamNavio, LinhaTabDrop, LinhaTabDropTake),
-    % temNavio(LinhaTabDropTake, R1),
-    % notBool(R1, R).
 
 posicionaNaviosHorizontal(Tab, X, Y, TamNavio, R):-
 	LinhaInserir is X - 1,
@@ -673,7 +636,7 @@ montaLista(LEntrada, I, MinI, MaxI, LSaida, true, R):-
 		NovoI is I + 1,
 		append(LSaida, [ElementoInteresse], NovoLSaida),
 		montaLista(LEntrada, NovoI, MinI, MaxI, NovoLSaida, true, R));
-		(ElementoInteresse = "#",
+		(ElementoInteresse = #,
 		NovoI is I + 1,
 		append(LSaida, [ElementoInteresse], NovoLSaida),
 		montaLista(LEntrada, NovoI, MinI, MaxI, NovoLSaida, true, R)).
@@ -687,7 +650,7 @@ montaLista(LEntrada, I, MinI, MaxI, LSaida, R):-
 		NovoI is I + 1,
 		append(LSaida, [ElementoInteresse], NovoLSaida),
 		montaLista(LEntrada, NovoI, MinI, MaxI, NovoLSaida, R));
-		(ElementoInteresse = "#",
+		(ElementoInteresse = #,
 		NovoI is I + 1,
 		append(LSaida, [ElementoInteresse], NovoLSaida),
 		montaLista(LEntrada, NovoI, MinI, MaxI, NovoLSaida, R)).
@@ -707,14 +670,16 @@ montaListaLimpa(K, J, R):-
 	J >= 0,
 	J < 10,
 	J1 is J + 1,
-	append(K, ["~"], SaidaL),
+	append(K, [~], SaidaL),
 	montaListaLimpa(SaidaL, J1, R).
 
 % Retorna true caso haja uma célula #, caso contrário, retorna false.
 temNavio([], false).
-temNavio(["#"|_], true).
 temNavio([#|_], true).
-temNavio([H|T], R):- H =\= "#", H \= #, temNavio(T, R).
+temNavio([#|_], true).
+temNavio([~|T], R):- temNavio(T, R).
+temNavio([x|T], R):- temNavio(T, R).
+temNavio([o|T], R):- temNavio(T, R).
 
 % Implementação egoísta de not
 notBool(false, true).
