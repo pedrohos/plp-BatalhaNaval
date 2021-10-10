@@ -5,7 +5,7 @@
   <h3>Guia de Instalação</h3>
   <ol>
     <li>git clone https://github.com/pedrohos/plp-BatalhaNaval.git</li>
-    <li>cd plp-BatalhaNaval</li>
+    <li>cd plp-BatalhaNaval/haskell/</li>
     <li>cabal install random</li>
     <li>cabal install ansi-terminal</li>
   </ol>
