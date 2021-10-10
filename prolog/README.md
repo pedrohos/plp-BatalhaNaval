@@ -5,16 +5,13 @@
   <h3>Guia de Instalação</h3>
   <ol>
     <li>git clone https://github.com/pedrohos/plp-BatalhaNaval.git</li>
-    <li>cd plp-BatalhaNaval</li>
-    <li>cabal install random</li>
-    <li>cabal install ansi-terminal</li>
+    <li>cd plp-BatalhaNaval/prolog/</li>
   </ol>
   
   <h3>Como compilar para jogar</h3>
   <ol>
-    <li> gch main</li>
-    <li> ./main (Linux)</li>
-    <li> .\main.exe (Windows)</li>
+    <li> swipl ./main.pl</li>
+    <li> main.</li>
   </ol>
   
   <h3>
