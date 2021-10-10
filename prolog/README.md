@@ -1,6 +1,6 @@
 <h1 align="center"> Batalha Naval </h1>
 <p align="center">
-  <b>O objetivo deste projeto foi desenvolver um jogo de batalha naval feito em Haskell, para a disciplina de Paradigmas de Linguagem de Programação (PLP) do Curso de Ciência da Computação da UFCG.</b>
+  <b>O objetivo deste projeto foi desenvolver um jogo de batalha naval feito em Prolog, para a disciplina de Paradigmas de Linguagem de Programação (PLP) do Curso de Ciência da Computação da UFCG.</b>
   
   <h3>Guia de Instalação</h3>
   <ol>
