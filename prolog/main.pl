@@ -224,12 +224,10 @@ verificaFinalizacaoPartida(_, 0):-
 
 verificaFinalizacaoPartida(A, B):- A =\= 0, B =\= 0.
 
-% TODO: TESTAR TODAS AS FUNCOES COMENTADAS
 loopPartida(Tab_J, Tab_J_Ve_B, Tab_B, Tab_B_Ve_J, Round):-
-	% write('\nEntrou'),
 	contaNaviosTab(Tab_J, NumNavios_J),
 	contaNaviosTab(Tab_B, NumNavios_B),
-	% write('\nContei').
+
 	limpaTela(),
 	write('Numero de navios restantes do jogador: '),
 	write(NumNavios_J),
@@ -257,7 +255,7 @@ loopPartida(Tab_J, Tab_J_Ve_B, Tab_B, Tab_B_Ve_J, Round):-
 		sleep(0.3),
 		disparaAoBot(Tab_B, Tab_J_Ve_B, Tab_BF, Tab_J_Ve_BF),
 		write('\nVez do bot...\n'),
-		sleep(0.6),
+		sleep(0.9),
 		disparaAoJogador(Tab_J, Tab_B_Ve_J, Tab_JF, Tab_B_Ve_JF),
 		NovoRound is Round + 1,
 
@@ -279,8 +277,7 @@ disparaAoJogador(Tab_J, Tab_B_Ve_J, Tab_JF, Tab_B_Ve_JF):-
 
 	verificaJaDisparadoAoJogador(Tab_B_Ve_J, X, Y, RDisparo),
 
-	verificaDisparoFinal(RXY, RDisparo, RVerificacao),
-	RVerificacao == true -> (
+	RDisparo == true -> (
 		selecionaSimboloNavio(Tab_J, X, Y, Simbolo),
 		posicionaSimbolo(Tab_J, Tab_B_Ve_J, X, Y, Simbolo, Tab_JF, Tab_B_Ve_JF)
 	);
@@ -349,8 +346,8 @@ remontaNaviosHorizontal([H|T], 1, LinhaInserir, PosInserir, ElementoEntrada, R):
 	remontaNaviosHorizontal(T, 1, NovaLinhaInserir, PosInserir, ElementoEntrada, R1),
 	append([H], R1, R).
 
-montaLista(_, 10, _, _, NovaLista, ElementoEntrada, true, R):- R = [NovaLista].
-montaLista(_, 10, _, _, NovaLista, ElementoEntrada, false, R):- R = NovaLista.
+montaLista(_, 10, _, _, NovaLista, _, true, R):- R = [NovaLista].
+montaLista(_, 10, _, _, NovaLista, _, false, R):- R = NovaLista.
 montaLista(LEntrada, I, MinI, MaxI, LSaida, ElementoEntrada, Flag, R):-
 	I >= 0,
 	I < 10,
@@ -363,8 +360,6 @@ montaLista(LEntrada, I, MinI, MaxI, LSaida, ElementoEntrada, Flag, R):-
 		NovoI is I + 1,
 		append(LSaida, [ElementoInteresse], NovoLSaida),
 		montaLista(LEntrada, NovoI, MinI, MaxI, NovoLSaida, ElementoEntrada, Flag, R)).
-
-
 
 verificaSimbolo(#, x).
 verificaSimbolo(~, o).
@@ -515,7 +510,7 @@ rFinal(false, _, false).
 rFinal(_, false, false).
 rFinal(true, true, true).
 
-verificaEInsereTab(Tab, _, _, _, TamNavio, false, R):-
+verificaEInsereTab(Tab, _, _, _, _, false, R):-
 	write('Entradas invalidas, insira novamente.\n'),
 	sleep(3),
 	R = Tab.
